@@ -117,10 +117,10 @@
                     $("#btnAddCategory").attr('data-dismiss', 'modal');
                     categoryShow(csrf_token);
                     $('#selCategory').selectpicker('refresh');
-                    $('#postsCategory').selectpicker('refresh');
+                    $('#selPosts').selectpicker('refresh');
                     topicShow(csrf_token);
                 }
-                dialog(data);
+                $.dialog(data);
             }
         });
     });
