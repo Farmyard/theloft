@@ -17,6 +17,7 @@ class CreateCategoryTable extends Migration
             $table->increments('id');
             $table->integer('pid');
             $table->string('name');
+            $table->tinyInteger('iParent');
             $table->timestamps();
         });
     }

@@ -14,18 +14,25 @@ class CategoryController extends Controller
         $this->middleware('auth');
     }
 
-    public function show()
+    public function show(Request $request)
     {
-        $aJson['data']=$this->recursive(0,1);
-        $aJson['success']=!empty($aJson['data'])?true:false;
+        $aJson['lists']=$this->getLists(0,1);
+        $aJson['options']=$this->getOptions(0,1);
+        $aJson['success']=!empty($aJson['lists'])?true:false;
         return response()->json($aJson);
     }
 
-    private function recursive($pid,$level)
+    private function getLists($pid,$level)
     {
         $category = new Category;
         $hData=$category->where('pid',$pid)->get();
         $_level=$level+1;
+        $symbol='';
+        if($level>1){
+            for($i=0;$i<$level;$i++){
+                $symbol.="--";
+            }
+        }
         $aData=array();
         foreach($hData as $v){
             $aItem=array(
@@ -33,9 +40,38 @@ class CategoryController extends Controller
                 'pid'=>$v->pid,
                 'name'=>$v->name,
                 'level'=>$level,
+                'symbol'=>$symbol
             );
-            $aItem['children']=(!empty($category->where('pid',$v->id)->get()))?$this->recursive($v->id,$_level):array();
+            $aItem['children']=(!empty($category->where('pid',$v->id)->get()))?$this->getLists($v->id,$_level):array();
             array_push($aData,$aItem);
+        }
+        return $aData;
+    }
+
+    private function getOptions($pid,$level,&$aData=array())
+    {
+        $category = new Category;
+        $hData=$category->where('pid',$pid)->get();
+        $_level=$level+1;
+        $symbol='';
+        if($level>1){
+            for($i=0;$i<$level;$i++){
+                $symbol.="--";
+            }
+        }
+        foreach($hData as $v){
+            
+            $aItem=array(
+                'id'=>$v->id,
+                'pid'=>$v->pid,
+                'name'=>$v->name,
+                'level'=>$level,
+                'symbol'=>$symbol
+            );
+            array_push($aData,$aItem);
+            if(!empty($category->where('pid',$v->id)->get())){
+                $this->getOptions($v->id,$_level,$aData);
+            }
         }
         return $aData;
     }
@@ -58,8 +94,14 @@ class CategoryController extends Controller
 
         $category->pid=$request->pid;
         $category->name = $request->name;
+        $category->iParent = ($request->pid==0)?1:0;
 
         if($category->save()){
+            if($request->pid>0){
+                $parent = Category::find($request->pid);
+                $parent->iParent = 1;
+                $parent->save();
+            }
             $aJson['success']=true;
             $aJson['msg']="新增成功";
         }else{
@@ -127,13 +169,6 @@ class CategoryController extends Controller
             $aJson['success']=false;
             $aJson['msg']="删除失败";
         }
-        return response()->json($aJson);
-    }
-
-    public function topic(Request $request)
-    {
-        $aJson['data']=navbar();
-        $aJson['success']=(!empty(navbar()))?true:false;
         return response()->json($aJson);
     }
 }

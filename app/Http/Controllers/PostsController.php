@@ -26,6 +26,13 @@ class PostsController extends Controller
         return view('posts.save',['id'=>$id]);
     }
 
+    private function iParent($id)
+    {
+        $category = new Category;
+        $hData=$category->find($id);
+        return ($hData->iParent)?true:false;
+    }
+
     public function store(Request $request)
     {
         if($request->input('id')){
@@ -49,6 +56,11 @@ class PostsController extends Controller
         if(empty($request->input('category_id'))){
             $aJson['success']=false;
             $aJson['msg']="请选择分类";
+            return response()->json($aJson);
+        }
+        if($this->iParent($request->input('category_id'))){
+            $aJson['success']=false;
+            $aJson['msg']="所选分类为父类，禁止选择";
             return response()->json($aJson);
         }
         $posts = new Posts;
@@ -108,10 +120,10 @@ class PostsController extends Controller
     public function destroy(Request $request)
     {
         $rs=false;
-        if($request->input('type')=='soft'){
-            $rs=Posts::destroy($request->input('id'));
-        }elseif($request->input('type')=='force'){
+        if($request->input('type')){
             $rs=Posts::withTrashed()->where('id',$request->input('id'))->forceDelete();
+        }else{
+            $rs=Posts::destroy($request->input('id'));
         }
         if($rs){
             $aJson['success']=true;

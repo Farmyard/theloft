@@ -27,6 +27,9 @@ class HomeController extends Controller
             $posts=$posts->where('category_id',$request->input('category_id'));
         }
 
+        $aJson['page']=$request->input('page');
+        $aJson['total']=ceil($posts->count()/20);
+
         $offset=($request->input('page')-1)*20;
         $hData=$posts->offset($offset)->limit(20)->orderBy('updated_at', 'desc')->get();
         $aData=array();
@@ -39,20 +42,27 @@ class HomeController extends Controller
                 'id'=>$v->id,
                 'title'=>$v->title,
                 'updated_at'=>$v->updated_at->format('Y-m-d'),
-                'del_btn'=>(Auth::check())?true:false,
-                'edit_btn'=>(Auth::check())?true:false,
-                'is_del'=>!empty($v->deleted_at)?true:false,
+                'destroy'=>(Auth::check())?1:0,
+                'edit'=>(Auth::check())?1:0,
+                'restore'=>!empty($v->deleted_at)?1:0,
             );
             array_push($aData[$time],$aItem);
         }
+        
         $aJson['data']=$aData;
         $aJson['success']=(!empty($aData))?true:false;
         return response()->json($aJson);
     }
 
-    public function topic($id)
+    public function topic(Request $request,$id=null)
     {
-        return view('home.index',['topic'=>$id]);
+        if($request->isMethod('post')){
+            $aJson['data']=navbar();
+            $aJson['success']=(!empty(navbar()))?true:false;
+            return response()->json($aJson);
+        }else{
+            return view('home.index',['topic'=>$id]);
+        }
     }
 
     public function posts(Request $request,$id=null)

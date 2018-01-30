@@ -34,18 +34,14 @@
 				</div>
 				<div id="navbar" class="navbar-collapse collapse">
 					<ul class="nav navbar-nav" id="topic">
-						@foreach(navbar() as $nav)
-						<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ $nav['name'] }}
+						<li class="dropdown" v-for="nav in navbar">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">@{{nav.name}}
 								<span class="caret"></span>
 							</a>
-							<ul class="dropdown-menu">
-								@foreach($nav['children'] as $v)
-									<li><a href="/topic/id/{{ $v['id'] }}">{{ $v['name'] }}</a></li>
-								@endforeach
+							<ul class="dropdown-menu" v-if="nav.children.length>0">
+								<li v-for="v in nav.children"><a v-bind:href="'/topic/id/'+v.id">@{{v.name}}</a></li>
 							</ul>
 						</li>
-						@endforeach
 					</ul>
 					<ul class="nav navbar-nav navbar-right">
 						@if(Auth::check())
@@ -90,6 +86,7 @@
 	<!-- Scripts -->
 	<script src="{{ asset('js/jquery-3.2.1.min.js')}}"></script>
 	<script src="{{ asset('js/bootstrap.js') }}"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue"></script>
 	<script src="{{ asset('js/public.js')}}"></script>
 	@yield('script')
 </body>

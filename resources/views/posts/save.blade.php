@@ -23,8 +23,9 @@
                 </div>
                 <div class="form-group">
                     <div class="col-sm-10">
-                        <select id="selPosts" name="category_id" class="selectpicker show-tick form-control" data-live-search="false">
+                        <select name="category_id" class="selectpicker show-tick form-control" data-live-search="false">
                             <option value="0">选择分类</option>
+                            <option v-for="opt in options" v-bind:value="opt.id">@{{opt.symbol}}@{{opt.name}}</option>
                         </select>
                     </div>
                     <div class="col-sm-2">
@@ -33,7 +34,7 @@
                 </div>
                 <div class="form-group">
                     <div class="col-md-12">
-                        <button type="submit" class="btn btn-primary btn-block" id="btnPosts">保存文章</button>
+                        <button type="submit" v-on:click="save" class="btn btn-primary btn-block" id="btnPosts">保存文章</button>
                     </div>
                 </div>
             </form>
@@ -55,15 +56,16 @@
                                                 <input type="text" name="name" class="form-control" placeholder="分类名称">
                                             </div>
                                             <div class="col-sm-4">
-                                                <select id="selCategory" name="pid" class="selectpicker show-tick form-control" data-live-search="false">
+                                                <select name="pid" class="selectpicker show-tick form-control" data-live-search="false">
                                                     <option value="0">选择分类</option>
+                                                    <option v-for="opt in options" v-bind:value="opt.id">@{{opt.symbol}}@{{opt.name}}</option>
                                                 </select>
                                             </div>
                                             <div class="col-sm-2">
-                                                <button id="btnEditCategory" type="button" class="btn btn-primary btn-block">修改</button>
+                                                <button v-on:click="edit" type="button" class="btn btn-primary btn-block">修改</button>
                                             </div>
                                             <div class="col-sm-2">
-                                                <button id="btnAddCategory" type="button" class="btn btn-primary btn-block">新增</button>
+                                                <button v-on:click="add" type="button" class="btn btn-primary btn-block">新增</button>
                                             </div>
                                         </div>
                                     </div>
@@ -71,7 +73,21 @@
                             </form>
                             <hr class="featurette-divider">
                             
-                            <ul class="list-group" id="ulCategory" style="display:block;"></ul>
+                            <!-- 子级组件 -->
+                            <template id="lists-template">
+                                <li class="list-group-item" style="padding: 10px 0;margin-top">
+                                    <a href="javascript:void(0);" class="badge" style="margin-right:15px;"><span v-bind:data-id="model.id" v-on:click="destroy($event)" class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+                                    <a href="javascript:void(0);" class="drop-down" v-bind:data-id="model.id" style="margin-left:15px;">@{{model.symbol}}@{{model.name}}</a>  
+                                    <!-- 组件中引用当前组件，传入下级数据 -->
+                                    <ul class="list-group" v-if="model.children.length>0" v-bind:id="'drop-down-menu-'+model.id" style="margin-top: 10px;display:none">
+                                        <lists v-for="model in model.children" :model="model"></lists>
+                                    </ul>
+                                </li>
+                            </template>
+                            <!-- 父级 -->
+                            <ul class="list-group" id="categoryLists">
+                                <lists v-for="model in lists" :model="model"></lists>
+                            </ul>
                         </div>
                         <div class="modal-footer"></div>
                     </div>

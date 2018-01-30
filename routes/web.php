@@ -8,6 +8,7 @@ Route::get('/topic/id/{id}','HomeController@topic');
 Route::get('/posts/id/{id}','HomeController@posts');
 Route::post('/posts','HomeController@posts')->name('posts');
 Route::post('/lists','HomeController@lists')->name('lists');
+Route::post('/topic','HomeController@topic');
 
 //后台
 Route::prefix('admin')->group(function(){
@@ -16,7 +17,6 @@ Route::prefix('admin')->group(function(){
         Route::post('/update','CategoryController@update');
         Route::post('/show','CategoryController@show');
         Route::post('/destroy','CategoryController@destroy');
-        Route::post('/topic','CategoryController@topic');
     });
     
     Route::prefix('posts')->group(function(){
