@@ -4,6 +4,7 @@
 <div class="container">
 	<div class="content-area col-md-12">
 		<div id="lists" topic="{{ $topic }}">
+			@if($topic>=0)
 			<div class="item" v-for="(item, index) in lists"><h5>@{{index}}<span class="badge">@{{item.length}}</span></h5><ul class="list-group">
 				<li class="list-group-item" style="margin-bottom: 5px;" v-for="(t,i) in item">
 					@if(Auth::check())
@@ -24,6 +25,7 @@
 					<li class="next"><a v-on:click="pager($event)" href="javascript:void(0);" style="color:#5e5d5d;" action="+">下一页</a></li>
 				</ul>
 			</nav>
+			@endif
 		</div>
 		
 	</div>
