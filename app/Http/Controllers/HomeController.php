@@ -2,93 +2,117 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use App\Category;
 use App\Posts;
 use App\User;
 use EndaEditor;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        return view('home.index',['topic'=>0]);
+        return view('home.index', ['topic' => 0]);
     }
 
     public function lists(Request $request)
     {
-        $posts = new Posts;
-        
-        if(Auth::check()){
-            $posts=$posts->withTrashed();
+        $pager = [
+            'page' => $request->input('page') ? $request->input('page') : 1,
+            'size' => 20,
+        ];
+        //缓存分页id
+        if($request->input('category_id')==0){
+            $prefix = (Auth::check()) ? 'CPostsPager_' . Auth::id() : 'CPostsPager';
+        }else{
+            $prefix = (Auth::check()) ? 'CPostsPager_' .$request->input('category_id').'_'. Auth::id() : 'CPostsPager';
         }
-        if(!empty($request->input('category_id'))){
-            $posts=$posts->where('category_id',$request->input('category_id'));
-        }
-
-        $aJson['page']=$request->input('page');
-        $aJson['total']=ceil($posts->count()/20);
-
-        $offset=($request->input('page')-1)*20;
-        $hData=$posts->offset($offset)->limit(20)->orderBy('updated_at', 'desc')->get();
-        $aData=array();
-        foreach($hData as $v){
-            $time=date('Y-m-d',strtotime($v->updated_at));
-            if(!array_key_exists($time,$aData)){
-                $aData[$time]=array();
+        $aId = CPager($pager, $prefix, function () use ($request) {
+            $posts = new Posts;
+            if (Auth::check()) {
+                $posts = $posts->withTrashed();
+                $posts = $posts->where('user_id', Auth::id());
             }
-            $aItem=array(
-                'id'=>$v->id,
-                'title'=>$v->title,
-                'updated_at'=>$v->updated_at->format('Y-m-d'),
-                'destroy'=>(Auth::check())?1:0,
-                'edit'=>(Auth::check())?1:0,
-                'restore'=>!empty($v->deleted_at)?1:0,
+            if (!empty($request->input('category_id'))) {
+                $posts = $posts->where('category_id', $request->input('category_id'));
+            }
+
+            $offset = ($request->input('page') - 1) * 20;
+            return $posts->offset($offset)->limit(20)->orderBy('updated_at', 'desc')->get();
+        });
+
+        $aData = array();
+        foreach ($aId as $id) {
+            //缓存记录
+            $v = (object) CRecord("CPosts_" . $id, function () use ($id) {
+                $posts = new Posts();
+                if (Auth::check()) {
+                    $posts = $posts->withTrashed();
+                }
+                return $posts->where('id', $id)->first()->toArray();
+            });
+            //格式化字段
+            $time = date('Y-m-d', strtotime($v->updated_at));
+            if (!array_key_exists($time, $aData)) {
+                $aData[$time] = array();
+            }
+            $aItem = array(
+                'id' => $v->id,
+                'title' => $v->title,
+                'url' => $v->url,
+                'updated_at' => $v->updated_at,
+                'destroy' => (Auth::check()) ? 1 : 0,
+                'edit' => (Auth::check()) ? 1 : 0,
+                'restore' => !empty($v->deleted_at) ? 1 : 0,
             );
-            array_push($aData[$time],$aItem);
+            array_push($aData[$time], $aItem);
         }
-        
-        $aJson['data']=$aData;
-        $aJson['success']=(!empty($aData))?true:false;
+
+        $aJson['page'] = $pager['page'];
+        $aJson['data'] = $aData;
+        $aJson['success'] = (!empty($aData)) ? true : false;
         return response()->json($aJson);
     }
 
-    public function topic(Request $request,$id=null)
+    public function topic(Request $request, $id = null)
     {
-        if($request->isMethod('post')){
-            $aJson['data']=navbar();
-            $aJson['success']=(!empty(navbar()))?true:false;
+        if ($request->isMethod('post')) {
+            $aJson['data'] = Auth::check() ? CNavbar() : array();
+            $aJson['success'] = !empty($aJson['data']) ? true : false;
             return response()->json($aJson);
-        }else{
-            return view('home.index',['topic'=>$id]);
+        } else {
+            return view('home.index', ['topic' => $id]);
         }
     }
 
-    public function posts(Request $request,$id=null)
+    public function posts(Request $request, $id = null)
     {
-        if($request->isMethod('post')){
-            $posts=new Posts();
+        if ($request->isMethod('post')) {
 
-            if(Auth::check()){
-                $posts=$posts->withTrashed();
+            $id = $request->input('id');
+            $hData = (object) CRecord('CPosts_' . $id, function () use ($id) {
+                $posts = new Posts();
+                if (Auth::check()) {
+                    $posts = $posts->withTrashed();
+                }
+                return $posts->where('id', $request->input('id'))->first();
+            });
+
+            $aData = array();
+            if (!empty($hData)) {
+                $aData['id'] = $hData->id;
+                $aData['user_id'] = $hData->user_id;
+                $aData['title'] = $hData->title;
+                $aData['category'] = breadcrumb($hData->category_id);
+                $aData['content'] = EndaEditor::MarkDecode($hData->content);
+                $aData['user'] = User::where('id', $hData->user_id)->first()->name;
+                $aData['time'] = $hData->updated_at;
             }
-        
-            $hData=$posts->where('id',$request->input('id'))->first();
-            $aData=array();
-            if(!empty($hData)){
-                $aData['id']=$hData->id;
-                $aData['title']=$hData->title;
-                $aData['category']=breadcrumb($hData->category_id);
-                $aData['content']=EndaEditor::MarkDecode($hData->content);
-                $aData['user']=User::where('id',$hData->user_id)->first()->name;
-                $aData['time']=$hData->updated_at->format('Y年m月d日');
-            }
-            $aJson['data']=$aData;
-            $aJson['success']=(!empty($aData))?true:false;
+            $aJson['data'] = $aData;
+            $aJson['success'] = (!empty($aData)) ? true : false;
             return response()->json($aJson);
-        }else{
-            return view('home.posts',['id'=>$id]);
+        } else {
+            return view('home.posts', ['id' => $id]);
         }
     }
 }

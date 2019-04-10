@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Category;
 use App\Posts;
+use Illuminate\Support\Facades\Redis;
 
 class CategoryController extends Controller
 {
@@ -25,6 +26,9 @@ class CategoryController extends Controller
     private function getLists($pid,$level)
     {
         $category = new Category;
+        if(Auth::check()){
+            $category=$category->where('user_id',Auth::id());
+        }
         $hData=$category->where('pid',$pid)->get();
         $_level=$level+1;
         $symbol='';
@@ -51,6 +55,9 @@ class CategoryController extends Controller
     private function getOptions($pid,$level,&$aData=array())
     {
         $category = new Category;
+        if(Auth::check()){
+            $category=$category->where('user_id',Auth::id());
+        }
         $hData=$category->where('pid',$pid)->get();
         $_level=$level+1;
         $symbol='';
@@ -83,7 +90,7 @@ class CategoryController extends Controller
             $aJson['msg']="分类名称不能为空";
             return response()->json($aJson);
         }else{
-            $hData=Category::where('name',$request->input('name'))->first();
+            $hData=Category::where('name',$request->input('name'))->where('user_id',Auth::id())->first();
             if(!empty($hData)){
                 $aJson['success']=false;
                 $aJson['msg']="分类名称已经存在";
@@ -94,6 +101,7 @@ class CategoryController extends Controller
 
         $category->pid=$request->pid;
         $category->name = $request->name;
+        $category->user_id = Auth::id();
         $category->iParent = ($request->pid==0)?1:0;
 
         if($category->save()){
@@ -104,6 +112,7 @@ class CategoryController extends Controller
             }
             $aJson['success']=true;
             $aJson['msg']="新增成功";
+            rmNavbarCache();
         }else{
             $aJson['success']=false;
             $aJson['msg']="新增失败";
@@ -123,7 +132,7 @@ class CategoryController extends Controller
             $aJson['msg']="分类名称不能为空";
             return response()->json($aJson);
         }else{
-            $hData=Category::where('name',$request->input('name'))->first();
+            $hData=Category::where('name',$request->input('name'))->where('user_id',Auth::id())->first();
             if(!empty($hData)){
                 $aJson['success']=false;
                 $aJson['msg']="分类名称已经存在";
@@ -131,11 +140,17 @@ class CategoryController extends Controller
             }
         }
         $category = Category::find($request->pid);
+        if($category->user_id!=Auth::id()){
+            $aJson['success']=false;
+            $aJson['msg']="非法操作！无权限修改该分类";
+            return response()->json($aJson);
+        }
         $category->name = $request->name;
 
         if($category->save()){
             $aJson['success']=true;
             $aJson['msg']="修改成功";
+            rmNavbarCache();
         }else{
             $aJson['success']=false;
             $aJson['msg']="修改失败";
@@ -148,6 +163,12 @@ class CategoryController extends Controller
         if(empty($request->input('id'))||!is_numeric($request->input('id'))){
             $aJson['success']=false;
             $aJson['msg']="参数异常，无法删除";
+            return response()->json($aJson);
+        }
+        $category = Category::find($request->input('id'));
+        if($category->user_id!=Auth::id()){
+            $aJson['success']=false;
+            $aJson['msg']="非法操作！无权限删除该分类";
             return response()->json($aJson);
         }
         //获取子类
@@ -165,6 +186,7 @@ class CategoryController extends Controller
             Posts::destroy($pId);
             $aJson['success']=true;
             $aJson['msg']="删除成功";
+            rmNavbarCache();
         }else{
             $aJson['success']=false;
             $aJson['msg']="删除失败";

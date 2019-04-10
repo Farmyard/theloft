@@ -14,7 +14,7 @@
 require __DIR__."/../app/Helpers/functions.php";
 
 $app = new Illuminate\Foundation\Application(
-    realpath(__DIR__.'/../')
+    $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );
 
 /*

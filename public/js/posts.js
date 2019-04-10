@@ -8,6 +8,7 @@
             content: '',
             category: '',
             user: '',
+            user_id: '',
             time: ''
         },
         methods: {
@@ -23,6 +24,7 @@
                             posts.content = json.data.content;
                             posts.category = json.data.category;
                             posts.user = json.data.user;
+                            posts.user_id = json.data.user_id;
                             posts.time = json.data.time;
                         }
                     }

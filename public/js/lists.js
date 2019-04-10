@@ -5,7 +5,6 @@
         el: '#lists',
         data: {
             lists: [],
-            total: 0,
             page: 1,
         },
         methods: {
@@ -18,7 +17,6 @@
                     success: function(json) {
                         if (json.success) {
                             lists.lists = json.data;
-                            lists.total = json.total;
                             lists.page = json.page;
                         }
                     }
@@ -49,13 +47,13 @@
                 });
             },
             pager: function(e) {
-                var action = $(e.target).attr('action');
+                var action = $(e.target).attr('action');console.log(action);
                 if (action == '+') {
                     var page = parseInt(this.page) + 1;
                 } else {
                     var page = parseInt(this.page) - 1;
                 }
-                if (page > 0 && page <= this.total) this.show(page);
+                this.show(page);
             }
         }
     })

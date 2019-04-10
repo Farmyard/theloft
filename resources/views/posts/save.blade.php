@@ -13,7 +13,12 @@
                 <input type="hidden" name="id" value="{{ $id }}">
                 <div class="form-group">
                     <div class="col-md-12">
-                    <input type="text" name="title" class="form-control" placeholder="文章标题">
+                        <input type="text" name="title" class="form-control" placeholder="文章标题">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <input type="text" name="url" class="form-control" placeholder="文章链接">
                     </div>
                 </div>
                 <div class="form-group">

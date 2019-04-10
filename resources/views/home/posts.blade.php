@@ -19,7 +19,7 @@
                         <span><i class="glyphicon glyphicon-user" style="margin-right:5px;"></i>@{{user}}</span>
                         <span><i class="glyphicon glyphicon-calendar" style="margin:0 5px;"></i>@{{time}}</span>
                         @if(Auth::check())
-                        <a class="badge" href="/admin/posts/edit/id/{{ $id }}" style="float:right"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
+                        <a v-if="user_id=={{Auth::id()}}" class="badge" href="/admin/posts/edit/id/{{ $id }}" style="float:right"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
                         @endif
                     </small>
                 </div>

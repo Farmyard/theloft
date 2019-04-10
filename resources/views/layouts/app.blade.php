@@ -15,7 +15,8 @@
 
 	<!-- Styles -->
 	@yield('style')
-	<link href="{{ asset('css/app.css') }}" rel="stylesheet">
+	<link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.css" rel="stylesheet">
+	<!-- <link href="{{ asset('css/app.css') }}" rel="stylesheet"> -->
 	<link href="{{ asset('css/public.css')}}" rel="stylesheet">
 </head>
 
@@ -33,7 +34,8 @@
 					<a class="navbar-brand" href="/">{{ config('app.name', 'TheLoft') }}</a>
 				</div>
 				<div id="navbar" class="navbar-collapse collapse">
-					<ul class="nav navbar-nav" id="topic">
+					<!-- @if(Auth::check()) -->
+					<ul class="nav navbar-nav" id="topic" v-cloak>
 						<li class="dropdown" v-for="nav in navbar">
 							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">@{{nav.name}}
 								<span class="caret"></span>
@@ -43,6 +45,7 @@
 							</ul>
 						</li>
 					</ul>
+					<!-- @endif -->
 					<ul class="nav navbar-nav navbar-right">
 						@if(Auth::check())
 						<li>
@@ -54,9 +57,6 @@
 									<a href="{{ route('create') }}">发布文章</a>
 								</li>
 								<li>
-									<a href="{{ route('register') }}">注册账号</a>
-								</li>
-								<li>
 									<a href="javascript:void(0);" id="logout">退出系统</a>
 									<form id="logoutForm" method="POST" action="{{ route('logout') }}">{{ csrf_field() }}</form>
 								</li>
@@ -65,6 +65,9 @@
 						@else
 						<li>
 							<a href="{{ route('login') }}">登录</a>
+						</li>
+						<li>
+							<a href="{{ route('register') }}">注册</a>
 						</li>
 						@endif
 					</ul>
@@ -84,8 +87,11 @@
 	</div>
 
 	<!-- Scripts -->
-	<script src="{{ asset('js/jquery-3.2.1.min.js')}}"></script>
-	<script src="{{ asset('js/bootstrap.js') }}"></script>
+	<!-- <script src="{{ asset('js/jquery-3.2.1.min.js')}}"></script> -->
+	<!-- <script src="{{ asset('js/bootstrap.js') }}"></script> -->
+	<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://cdn.bootcss.com/popper.js/1.14.3/umd/popper.min.js"></script>
+	<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/vue"></script>
 	<script src="{{ asset('js/public.js')}}"></script>
 	@yield('script')

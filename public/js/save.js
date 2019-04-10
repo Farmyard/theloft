@@ -60,6 +60,7 @@
                         success: function(data) {
                             if (data.success) {
                                 $("input[name=title]").val(data.data.title);
+                                $("input[name=url]").val(data.data.url);
                                 $("textarea[name=content]").text(data.data.content);
                                 $('select[name=category_id]').selectpicker('val', data.data.category_id);
                             } else {
